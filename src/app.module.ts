@@ -1,10 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { GensetMonitoringModule } from './genset-monitoring/genset-monitoring.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ 
+    TypeOrmModule.forRoot({
+    type: 'mysql',
+    host: 'localhost',
+    port: 3306,
+    username: 'root',
+    password: 'root',
+    database: 'nicatra',
+    entities: [__dirname + '/**/*.entity{.ts,.js}'],
+    synchronize: true,
+  }),
+  GensetMonitoringModule],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
