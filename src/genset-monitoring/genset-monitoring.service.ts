@@ -16,7 +16,7 @@ export class GensetMonitoringService {
 
   // Create method
   async create(dto: CreateGensetMonitoringDto) {
-    this.logger.log('Creating new genset monitoring record');
+    this.logger.log('Creating new genset monitoring record :', dto);
 
     const data = this.gensetRepo.create(dto);
     const savedData = await this.gensetRepo.save(data);
