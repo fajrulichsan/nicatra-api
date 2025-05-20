@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GensetMonitoringModule } from './genset-monitoring/genset-monitoring.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [ 
@@ -8,15 +9,16 @@ import { GensetMonitoringModule } from './genset-monitoring/genset-monitoring.mo
     type: 'mysql',
     host: 'localhost',
     port: 3306,
-    // username: 'root',
-    // password: 'root',
-    username: 'nicatra',
-    password: 'Isan02082000!',
+    username: 'root',
+    password: 'root',
+    // username: 'nicatra',
+    // password: 'Isan02082000!',
     database: 'nicatra',
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
     synchronize: true,
   }),
-  GensetMonitoringModule],
+  GensetMonitoringModule,
+  UserModule],
   controllers: [],
   providers: [],
 })
