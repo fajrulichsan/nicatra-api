@@ -7,6 +7,7 @@ import {
   Delete,
   HttpStatus,
   Res,
+  Patch
 } from '@nestjs/common';
 import { Response } from 'express';
 import { UserService } from './user.service';
@@ -16,6 +17,19 @@ import { LoginUserDto } from './dto/login-user.dto';
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Patch('approve/:id')
+  async approve(@Param('id') id: number): Promise<any> {
+      // Memanggil metode approve dari UserService
+      const approvedUser = await this.userService.approve(id);
+      
+      return {
+        acknowledge: true,
+        message: 'User successfully approved',
+        data: approvedUser,
+        statusCode: HttpStatus.OK,
+      };
+  } 
 
   @Post('register')
   async register(@Body() dto: CreateUserDto) {
