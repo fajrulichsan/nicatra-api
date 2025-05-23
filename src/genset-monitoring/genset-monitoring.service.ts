@@ -28,18 +28,19 @@ export class GensetMonitoringService {
   // Find all records
   async findAll() {
     this.logger.log('Fetching all genset monitoring records where statusData is true');
-    
-    // Menggunakan parameter where untuk memfilter statusData true
+  
     const records = await this.gensetRepo.find({
-      where: { statusData: true }, // hanya ambil yang statusData true
+      where: { statusData: true }, 
+      order: {
+        createdAt: 'DESC', 
+      },
     });
   
-    this.logger.log('Genset monitoring records fetched ');
+    this.logger.log('Genset monitoring records fetched');
     return records;
   }
   
 
-  // Find one record by ID
   async findOne(id: number) {
     this.logger.log(`Fetching genset monitoring record with ID: ${id}`);
     const record = await this.gensetRepo.findOneBy({ id });
@@ -54,7 +55,7 @@ export class GensetMonitoringService {
     await this.gensetRepo.update(id, dto);
     this.logger.log(`Genset monitoring record with ID: ${id} updated`);
 
-    return this.findOne(id); // Mengembalikan data yang sudah diupdate
+    return this.findOne(id); 
   }
 
   // Delete record

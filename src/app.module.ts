@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GensetMonitoringModule } from './genset-monitoring/genset-monitoring.module';
 import { UserModule } from './user/user.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [ 
@@ -18,7 +19,8 @@ import { UserModule } from './user/user.module';
     synchronize: true,
   }),
   GensetMonitoringModule,
-  UserModule],
+  UserModule,
+  NotificationModule],
   controllers: [],
   providers: [],
 })
