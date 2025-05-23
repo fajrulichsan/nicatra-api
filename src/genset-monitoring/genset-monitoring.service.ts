@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { GensetMonitoring } from './entities/genset-monitoring.entity';
 import { CreateGensetMonitoringDto } from './dto/create-genset-monitoring.dto';
 import { UpdateGensetMonitoringDto } from './dto/update-genset-monitoring.dto';
@@ -25,12 +25,17 @@ export class GensetMonitoringService {
     return savedData;
   }
 
-  // Find all records
   async findAll() {
-    this.logger.log('Fetching all genset monitoring records where statusData is true');
-  
+    this.logger.log('Fetching all genset monitoring records where statusData is true and within the last 24 hours');
+
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24); // Mengurangi 24 jam dari waktu sekarang
+    
     const records = await this.gensetRepo.find({
-      where: { statusData: true }, 
+      where: {
+        statusData: true,
+        createdAt: MoreThan(twentyFourHoursAgo),
+      },
       order: {
         createdAt: 'DESC', 
       },
