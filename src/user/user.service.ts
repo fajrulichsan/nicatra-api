@@ -77,7 +77,7 @@ export class UserService {
         throw new HttpException('Incorrect password', HttpStatus.UNAUTHORIZED);
       }
   
-      const payload = { sub: user.id, email: user.email, isAdmin: user.isAdmin };
+      const payload = { sub: user.id, email: user.email, isAdmin: user.isAdmin, name: user.name };
       const token = this.jwtService.sign(payload);
   
       this.logger.log(`User logged in successfully: ${user.email}`);
