@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { Repository } from 'typeorm';
 import { Station } from './entities/station.entity';  
 import { InjectRepository } from '@nestjs/typeorm';
+import { console } from 'inspector';
 
 @Injectable()
 export class StationService {
@@ -14,10 +15,14 @@ export class StationService {
 
   async getAllActiveStations(): Promise<Station[]> {
     try {
-      return await this.stationRepo.find({
+      this.logger.log('Fetching all active stations where statusData is true');
+      const result =  await this.stationRepo.find({
         where: { statusData: true },
         order: { name: 'ASC' },
       });
+
+      console.log('Active stations fetched successfully:', result);
+      return result;
     } catch (error) {
       this.logger.error('Failed to fetch active stations', error.stack);
       throw new InternalServerErrorException('Failed to fetch active stations');
