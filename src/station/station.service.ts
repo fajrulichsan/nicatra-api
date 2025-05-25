@@ -15,10 +15,12 @@ export class StationService {
 
   async getAllActiveStations(): Promise<Station[]> {
     try {
-      this.logger.log('Fetching all active stations where statusData is true');
-      const result =  await this.stationRepo.find();
-
-      console.log('Active stations fetched successfully:', result);
+      const result =  await this.stationRepo.find(
+        {
+          where: { statusData: true },
+          order: { name: 'ASC' },
+        },
+      );
       return result;
     } catch (error) {
       this.logger.error('Failed to fetch active stations', error.stack);

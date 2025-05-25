@@ -73,7 +73,7 @@ export class NotificationService {
 
   async dataSummary(): Promise<any> {
     const totalUsers = await this.userRepo.count({
-      where: { isVerified:true, statusData: true },
+      where: { isVerified:true, statusData: true, isAdmin: false },
     });
   
     const totalUserRequestApprove = await this.userRepo.count({

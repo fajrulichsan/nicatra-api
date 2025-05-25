@@ -7,10 +7,7 @@ export class StationController {
 
   @Get()
   async getAllStations() {
-    console.log('Fetching all active stations...');
     const stations = await this.stationService.getAllActiveStations();
-
-    console.log('Active stations retrieved successfully:', stations);
     return {
       acknowledge: true,
       message: 'Stations retrieved successfully',
