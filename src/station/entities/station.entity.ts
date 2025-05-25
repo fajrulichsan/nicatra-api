@@ -1,21 +1,15 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert } from 'typeorm';
 
 @Entity()
-export class Notification {
-    @PrimaryGeneratedColumn({ type: 'bigint' })
-    id: number;
+export class Station {
+  @PrimaryGeneratedColumn({type: 'bigint'})
+  id: number;
 
-  @Column()
-  title: string;
+  @Column({ length: 200 })
+  name: string;
 
-  @Column('text')
-  body: string;
-
-  @Column({ default: false })
-  isRead: boolean;
-
-  @Column({ type: 'bigint' })
-  recipientId: number;
+  @Column({ length: 10, unique: true })
+  code: string;
 
   @Column({ default: true })
   statusData: boolean;

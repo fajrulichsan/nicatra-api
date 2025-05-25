@@ -1,50 +1,81 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
-import { EmailService } from 'src/common/email/email.service';
+import { Repository } from 'typeorm';
+import { Notification } from './entities/notification.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
-@Injectable()
 export class NotificationService {
-  private readonly logger = new Logger(NotificationService.name);  // Logger instance untuk class ini
 
   constructor(
-    private readonly emailService: EmailService,
+    @InjectRepository(Notification)
+    private readonly notificationRepo: Repository<Notification>,
   ) {}
 
-  create(createNotificationDto: CreateNotificationDto) {
-    this.logger.log('Creating a new notification...');
-    return 'This action adds a new notification';
-  }
-
-  findAll() {
-    this.logger.log('Fetching all notifications...');
-    return `This action returns all notification`;
-  }
-
-  findOne(id: number) {
-    this.logger.log(`Fetching notification with ID: #${id}`);
-    return `This action returns a #${id} notification`;
-  }
-
-  update(id: number, updateNotificationDto: UpdateNotificationDto) {
-    this.logger.log(`Updating notification with ID: #${id}`);
-    return `This action updates a #${id} notification`;
-  }
-
-  remove(id: number) {
-    this.logger.log(`Removing notification with ID: #${id}`);
-    return `This action removes a #${id} notification`;
-  }
-
-  public async sendGensetStatusEmail(gensetId: string, station : string, voltage: number, current: number, power: number, recipientEmail: string): Promise<void> {
-    this.logger.log(`Sending genset status email for Genset ID: ${gensetId} to ${recipientEmail}`);
-    
-    try {
-      await this.emailService.sendGensetStatus(gensetId, station, voltage, current, power, recipientEmail);  // Memanggil fungsi sendGensetStatus dari EmailService
-      this.logger.log(`Email sent successfully to ${recipientEmail}`);
-    } catch (error) {
-      this.logger.error(`Failed to send genset status email to ${recipientEmail}: ${error.message}`, error.stack);
-      throw new Error(`Failed to send genset status email: ${error.message}`);
+  async getNotificationsByRecipient(recipientId: number): Promise<any> {
+    const notifications = await this.notificationRepo.find({
+      where: { recipientId, statusData: true },
+      order: { createdAt: 'DESC' }
+    });
+  
+    const now = new Date();
+  
+    function timeAgo(date: Date): string {
+      const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+      if (seconds < 60) return `${seconds} seconds ago`;
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes} minutes ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours} hours ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${days} days ago`;
+      const months = Math.floor(days / 30);
+      if (months < 12) return `${months} months ago`;
+      const years = Math.floor(months / 12);
+      return `${years} years ago`;
     }
+  
+    return notifications.map(notif => ({
+      id: notif.id,
+      title: notif.title,
+      description: notif.body,
+      time: timeAgo(notif.createdAt),
+      read: notif.isRead,
+    }));
+  }
+
+  async markAsRead(notificationId: number): Promise<Notification | null> {
+    const notif = await this.notificationRepo.findOneBy({ id: notificationId });
+    if (!notif) return null;
+
+    notif.isRead = true;
+    notif.updatedAt = new Date();
+    return this.notificationRepo.save(notif);
+  }
+
+  async createNotification(
+    title: string,
+    body: string,
+    recipientId: number,
+  ): Promise<Notification> {
+    const notif = this.notificationRepo.create({
+      title,
+      body,
+      recipientId,
+    });
+    return this.notificationRepo.save(notif);
+  }  
+
+  async dataSummary(): Promise<any> {
+    const totalNotifications = await this.notificationRepo.count({
+      where: { statusData: true },
+    });
+
+    const unreadNotifications = await this.notificationRepo.count({
+      where: { isRead: false, statusData: true },
+    });
+
+    return {
+      totalNotifications,
+      unreadNotifications,
+    };
   }
 }

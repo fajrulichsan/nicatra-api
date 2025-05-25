@@ -12,15 +12,18 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { EmailService } from 'src/common/email/email.service';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
 
   constructor(
-    @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(User) 
+    private userRepo: Repository<User>,
     private jwtService: JwtService,
     private readonly emailService: EmailService,
+    private readonly notificationService: NotificationService, 
   ) {}
 
   async register(dto: CreateUserDto): Promise<User> {
@@ -42,18 +45,30 @@ export class UserService {
       const savedUser = await this.userRepo.save(user);
 
       this.logger.log(`User registered successfully: ${savedUser.email}`);
-      return savedUser;
-    } catch (error) {
-      this.logger.error(`Register error for ${dto.email}: ${error.message}`);
-      throw error;
+
+      const admins = await this.userRepo.find({ where: { isAdmin: true, statusData: true } });
+
+      // Buat notifikasi untuk setiap admin
+      for (const admin of admins) {
+        await this.notificationService.createNotification(
+          'New User Registered',
+          `User ${savedUser.email} has successfully registered.`,
+          admin.id,
+        );
+      }
+
+        return savedUser;
+      } catch (error) {
+        this.logger.error(`Register error for ${dto.email}: ${error.message}`);
+        throw error;
+      }
     }
-  }
 
   async login(dto: LoginUserDto): Promise<{ access_token: string }> {
     try {
       this.logger.log(`Login attempt for email: ${dto.email}`);
   
-      const user = await this.userRepo.findOne({ where: { email: dto.email } });
+      const user = await this.userRepo.findOne({ where: { email: dto.email, statusData:true} });
   
       if (!user) {
         this.logger.warn(`Login failed: User not found for email ${dto.email}`);
@@ -92,7 +107,7 @@ export class UserService {
     try {
       this.logger.log('Retrieving all active users');
       return await this.userRepo.find({
-        where: { statusData: true },
+        where: { statusData: true, isAdmin: false },
         order: {
           isVerified: 'ASC',
           createdAt: 'DESC',
@@ -160,6 +175,13 @@ export class UserService {
   
       // Ubah status isVerified menjadi true
       user.isVerified = true;
+
+      await this.notificationService.createNotification(
+        'Account Approved',
+        'Your account has been approved. You can now login.',
+        user.id,
+      );
+  
   
       // Simpan perubahan ke database
       await this.userRepo.save(user);

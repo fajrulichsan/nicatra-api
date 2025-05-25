@@ -26,8 +26,6 @@ export class UserController {
   async getMe(@Req() req: Request, @Res() res: Response) {
     const token = req.cookies.access_token;
 
-    console.log('Token:', token); // Log the token for debugging
-
     if (!token) {
       return res.status(HttpStatus.UNAUTHORIZED).json({
         message: 'Not logged in',
