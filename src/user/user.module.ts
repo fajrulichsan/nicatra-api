@@ -7,10 +7,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { EmailService } from 'src/common/email/email.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { Station } from 'src/station/entities/station.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Notification]),
+    TypeOrmModule.forFeature([User, Notification, Station]),
     JwtModule.register({
       secret: 'jwt_secret_key', 
       signOptions: { expiresIn: '1d' },

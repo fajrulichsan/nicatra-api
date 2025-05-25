@@ -25,11 +25,22 @@ export class NotificationController {
   @Patch('read/:id')
   async markAsRead(@Param('id') id: number) {
     const updatedNotification = await this.notificationService.markAsRead(id);
-    
+
     return {
       acknowledge: true,
       message: 'Notification marked as read',
       data: updatedNotification,
+      statusCode: HttpStatus.OK,
+    };
+  }
+
+  @Get('summary/data')
+  async dataSummary() {
+    const summary = await this.notificationService.dataSummary();
+    return {
+      acknowledge: true,
+      message: 'Summary data retrieved successfully',
+      data: summary,
       statusCode: HttpStatus.OK,
     };
   }

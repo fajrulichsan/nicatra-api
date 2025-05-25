@@ -1,12 +1,19 @@
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/user/entities/user.entity';
+import { Station } from 'src/station/entities/station.entity';
 
 export class NotificationService {
 
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepo: Repository<Notification>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    @InjectRepository(Station)
+    private readonly stationRepo: Repository<Station>
+    
   ) {}
 
   async getNotificationsByRecipient(recipientId: number): Promise<any> {
@@ -65,17 +72,23 @@ export class NotificationService {
   }  
 
   async dataSummary(): Promise<any> {
-    const totalNotifications = await this.notificationRepo.count({
+    const totalUsers = await this.userRepo.count({
+      where: { isVerified:true, statusData: true },
+    });
+  
+    const totalUserRequestApprove = await this.userRepo.count({
+      where: { isVerified: false, statusData: true },
+    });
+  
+    const totalStations = await this.stationRepo.count({
       where: { statusData: true },
     });
-
-    const unreadNotifications = await this.notificationRepo.count({
-      where: { isRead: false, statusData: true },
-    });
-
+  
     return {
-      totalNotifications,
-      unreadNotifications,
+      totalUsers,
+      totalUserRequestApprove,
+      totalStations,
     };
   }
+  
 }
