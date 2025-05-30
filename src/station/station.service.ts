@@ -18,7 +18,6 @@ export class StationService {
       const result =  await this.stationRepo.find(
         {
           where: { statusData: true },
-          order: { name: 'ASC' },
         },
       );
       return result;
