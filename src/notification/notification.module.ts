@@ -13,6 +13,5 @@ import { Station } from 'src/station/entities/station.entity';
   ],
   controllers: [NotificationController],
   providers: [NotificationService, EmailService],
-
 })
 export class NotificationModule {}

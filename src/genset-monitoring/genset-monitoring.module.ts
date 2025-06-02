@@ -3,10 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GensetMonitoring } from './entities/genset-monitoring.entity';
 import { GensetMonitoringService } from './genset-monitoring.service';
 import { GensetMonitoringController } from './genset-monitoring.controller';
+import { NotificationService } from 'src/notification/notification.service';
+import { EmailService } from 'src/common/email/email.service';
+import { User } from 'src/user/entities/user.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { Station } from 'src/station/entities/station.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([GensetMonitoring])],
+  imports: [TypeOrmModule.forFeature([GensetMonitoring, User, Notification, Station])],
   controllers: [GensetMonitoringController],
-  providers: [GensetMonitoringService],
+  providers: [GensetMonitoringService, NotificationService, EmailService],
 })
 export class GensetMonitoringModule {}

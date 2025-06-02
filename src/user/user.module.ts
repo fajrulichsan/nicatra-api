@@ -19,5 +19,6 @@ import { Station } from 'src/station/entities/station.entity';
   ],
   providers: [UserService, EmailService, NotificationService],
   controllers: [UserController],
+  exports: [TypeOrmModule],
 })
 export class UserModule {}

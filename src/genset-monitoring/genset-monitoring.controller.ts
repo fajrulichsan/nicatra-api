@@ -1,11 +1,26 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { GensetMonitoringService } from './genset-monitoring.service';
 import { CreateGensetMonitoringDto } from './dto/create-genset-monitoring.dto';
-import { UpdateGensetMonitoringDto } from './dto/update-genset-monitoring.dto';
+import { AlertGensetStatusDto } from './dto/alert-genset.dto';
 
 @Controller('genset-monitoring')
 export class GensetMonitoringController {
   constructor(private readonly service: GensetMonitoringService) {}
+
+  @Post('alert-status')
+  async alertGensetStatus(
+    @Body() dto: AlertGensetStatusDto
+  ): Promise<{ message: string }> {
+    await this.service.alertGensetStatus(
+      dto.gensetId,
+      dto.station,
+      dto.voltage,
+      dto.current,
+      dto.power
+    );
+    return { message: 'Notifikasi dan email berhasil dikirim ke semua admin.' };
+  }
+
 
   @Post()
   async create(@Body() dto: CreateGensetMonitoringDto) {
@@ -29,19 +44,5 @@ export class GensetMonitoringController {
     };
   }
 
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateGensetMonitoringDto) {
-    return this.service.update(+id, dto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(+id);
-  }
+ 
 }

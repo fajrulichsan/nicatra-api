@@ -3,7 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThan, Repository } from 'typeorm';
 import { GensetMonitoring } from './entities/genset-monitoring.entity';
 import { CreateGensetMonitoringDto } from './dto/create-genset-monitoring.dto';
-import { UpdateGensetMonitoringDto } from './dto/update-genset-monitoring.dto';
+import { User } from 'src/user/entities/user.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { EmailService } from 'src/common/email/email.service';
 
 @Injectable()
 export class GensetMonitoringService {
@@ -12,6 +14,10 @@ export class GensetMonitoringService {
   constructor(
     @InjectRepository(GensetMonitoring)
     private readonly gensetRepo: Repository<GensetMonitoring>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    private readonly notificationService : NotificationService,
+    private readonly emailService : EmailService
   ) {}
 
   // Create method
@@ -45,31 +51,45 @@ export class GensetMonitoringService {
     return records;
   }
   
+  async alertGensetStatus(
+    gensetId: string,
+    station: string,
+    voltage: number,
+    current: number,
+    power: number
+  ): Promise<void> {
+    const adminUsers = await this.userRepo.find({
+      where: {
+        statusData: true,
+        isVerified: true,
+      },
+    });
+  
+    const subject = `Status Terbaru Genset ${gensetId}`;
+    const bodyText = `Status terkini genset di stasiun ${station}:\nVoltage: ${voltage} V, Current: ${current} A, Power: ${power} W`;
+  
 
-  async findOne(id: number) {
-    this.logger.log(`Fetching genset monitoring record with ID: ${id}`);
-    const record = await this.gensetRepo.findOneBy({ id });
-    this.logger.log(`Genset monitoring record with ID ${id} fetched:`);
-    return record;
+    this.logger.log(adminUsers)
+    
+    for (const user of adminUsers) {
+      // Kirim email HTML
+      await this.emailService.sendGensetStatus(
+        gensetId,
+        station,
+        voltage,
+        current,
+        power,
+        user.email
+      );
+  
+      // Buat notifikasi di sistem
+      await this.notificationService.createNotification(
+        subject,
+        bodyText,
+        user.id
+      );
+    }
   }
-
-  // Update record
-  async update(id: number, dto: UpdateGensetMonitoringDto) {
-    this.logger.log(`Updating genset monitoring record with ID: ${id}`);
-
-    await this.gensetRepo.update(id, dto);
-    this.logger.log(`Genset monitoring record with ID: ${id} updated`);
-
-    return this.findOne(id); 
-  }
-
-  // Delete record
-  async remove(id: number) {
-    this.logger.log(`Deleting genset monitoring record with ID: ${id}`);
-
-    await this.gensetRepo.delete(id);
-    this.logger.log(`Genset monitoring record with ID: ${id} deleted`);
-
-    return { deleted: true };
-  }
+  
+  
 }
