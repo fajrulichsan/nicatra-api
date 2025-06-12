@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { GensetMonitoringService } from './genset-monitoring.service';
 import { CreateGensetMonitoringDto } from './dto/create-genset-monitoring.dto';
 import { AlertGensetStatusDto } from './dto/alert-genset.dto';
@@ -35,11 +35,13 @@ export class GensetMonitoringController {
 
 
   @Get()
-  async findAll() {
-    const result = await this.service.findAll();
+  async findAll(
+    @Query('stationCode') stationCode?: string,
+  ) {
+    const result = await this.service.findAll(stationCode);
     return {
       message: 'Genset monitoring records fetched successfully',
-      acknowledged: true, 
+      acknowledged: true,
       data: result,
     };
   }

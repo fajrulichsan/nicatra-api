@@ -6,6 +6,7 @@ import { CreateGensetMonitoringDto } from './dto/create-genset-monitoring.dto';
 import { User } from 'src/user/entities/user.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { EmailService } from 'src/common/email/email.service';
+import { Station } from 'src/station/entities/station.entity';
 
 @Injectable()
 export class GensetMonitoringService {
@@ -22,8 +23,6 @@ export class GensetMonitoringService {
 
   // Create method
   async create(dto: CreateGensetMonitoringDto) {
-    this.logger.log('Creating new genset monitoring record :', dto);
-
     const data = this.gensetRepo.create(dto);
     const savedData = await this.gensetRepo.save(data);
 
@@ -31,25 +30,38 @@ export class GensetMonitoringService {
     return savedData;
   }
 
-  async findAll() {
-    this.logger.log('Fetching all genset monitoring records where statusData is true and within the last 24 hours');
+  async findAll(stationCode?: string) {
+    this.logger.log('Fetching genset monitoring with station info');
 
-    const twentyFourHoursAgo = new Date();
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24); // Mengurangi 24 jam dari waktu sekarang
-    
-    const records = await this.gensetRepo.find({
-      where: {
-        statusData: true,
-        createdAt: MoreThan(twentyFourHoursAgo),
-      },
-      order: {
-        createdAt: 'DESC', 
-      },
-    });
+    this.logger.log('stationCode:', stationCode);
   
-    this.logger.log('Genset monitoring records fetched');
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+  
+    const query = this.gensetRepo
+      .createQueryBuilder('gm')
+      .leftJoinAndMapOne(
+        'gm.station',
+        Station,
+        'station',
+        'gm.gensetId = station.code'
+      )
+      .where('gm.statusData = :status', { status: true })
+      .andWhere('gm.createdAt >= :date', { date: twentyFourHoursAgo });
+  
+    if (stationCode) {
+      query.andWhere('gm.gensetId = :stationCode', { stationCode });
+    }
+  
+    const records = await query
+      .orderBy('gm.createdAt', 'DESC')
+      .getMany();
+  
+    this.logger.log('Genset monitoring records with station fetched');
     return records;
   }
+  
+  
   
   async alertGensetStatus(
     gensetId: string,
