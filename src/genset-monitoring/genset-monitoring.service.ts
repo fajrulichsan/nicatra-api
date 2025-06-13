@@ -1,12 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { GensetMonitoring } from './entities/genset-monitoring.entity';
 import { CreateGensetMonitoringDto } from './dto/create-genset-monitoring.dto';
 import { User } from 'src/user/entities/user.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { EmailService } from 'src/common/email/email.service';
 import { Station } from 'src/station/entities/station.entity';
+import { IssueService } from 'src/issue/issue.service';
+import { Issue } from 'src/issue/entities/issue.entity';
+import { log } from 'console';
 
 @Injectable()
 export class GensetMonitoringService {
@@ -17,8 +20,13 @@ export class GensetMonitoringService {
     private readonly gensetRepo: Repository<GensetMonitoring>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Station)
+    private readonly stasiunRepo: Repository<Station>,
+    @InjectRepository(Issue)
+    private readonly issueRepo: Repository<Issue>,
     private readonly notificationService : NotificationService,
-    private readonly emailService : EmailService
+    private readonly emailService : EmailService,
+    private readonly issueService: IssueService
   ) {}
 
   // Create method
@@ -60,48 +68,71 @@ export class GensetMonitoringService {
     this.logger.log('Genset monitoring records with station fetched');
     return records;
   }
-  
-  
-  
+
   async alertGensetStatus(
     gensetId: string,
-    station: string,
     voltage: number,
     current: number,
     power: number
   ): Promise<void> {
-    const adminUsers = await this.userRepo.find({
-      where: {
-        statusData: true,
-        isVerified: true,
-      },
-    });
+    const [adminUsers, station, shouldAlert] = await Promise.all([
+      this.userRepo.find({
+        where: {
+          statusData: true,
+          isVerified: true,
+        },
+      }),
+      this.stasiunRepo.findOne({ where: { code: gensetId } }),
+      this.hasUnresolvedIssueOverOneHour(gensetId),
+    ]);
   
-    const subject = `Status Terbaru Genset ${gensetId}`;
-    const bodyText = `Status terkini genset di stasiun ${station}:\nVoltage: ${voltage} V, Current: ${current} A, Power: ${power} W`;
-  
-
-    this.logger.log(adminUsers)
-    
-    for (const user of adminUsers) {
-      // Kirim email HTML
-      await this.emailService.sendGensetStatus(
-        gensetId,
-        station,
-        voltage,
-        current,
-        power,
-        user.email
-      );
-  
-      // Buat notifikasi di sistem
-      await this.notificationService.createNotification(
-        subject,
-        bodyText,
-        user.id
-      );
+    if (!shouldAlert || !station) {
+      throw new HttpException('No unresolved issues or station not found', 404);
     }
+  
+    const subject = `Status Terbaru Pada Stasiun ${station.name}`;
+    const bodyText = `Status terkini genset di stasiun ${station.name}:\nVoltage: ${voltage} V, Current: ${current} A, Power: ${power} W`;
+  
+    await Promise.all(
+      adminUsers.map(async (user) => {
+        await this.emailService.sendGensetStatus(
+          gensetId,
+          station.name,
+          voltage,
+          current,
+          power,
+          user.email
+        );
+  
+        await this.notificationService.createNotification(subject, bodyText, user.id);
+      })
+    );
+  
+    await this.issueService.create(gensetId, true);
+  
+    this.logger.log(`Notifikasi, email, dan issue berhasil dibuat untuk stasiun ${station.name}.`);
   }
   
+
+
+  async hasUnresolvedIssueOverOneHour(stationCode: string): Promise<boolean> {
+    const openIssue = await this.issueRepo.findOne({
+      where: {
+        stationCode,
+        status: true, 
+      },
+      order: { createdAt: 'DESC' },
+    });
   
+    
+    if (!openIssue) return false;
+  
+    const now = new Date();
+    const createdAt = new Date(openIssue.createdAt);
+    const oneHourInMs = 60 * 60 * 1000;
+  
+    return now.getTime() - createdAt.getTime() > oneHourInMs;
+  }
+  
+
 }

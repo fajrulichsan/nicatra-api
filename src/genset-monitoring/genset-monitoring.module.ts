@@ -8,10 +8,13 @@ import { EmailService } from 'src/common/email/email.service';
 import { User } from 'src/user/entities/user.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { Station } from 'src/station/entities/station.entity';
+import { BullModule } from '@nestjs/bull';
+import { IssueService } from 'src/issue/issue.service';
+import { Issue } from 'src/issue/entities/issue.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([GensetMonitoring, User, Notification, Station])],
+  imports: [TypeOrmModule.forFeature([GensetMonitoring, User, Notification, Station, Issue])],
   controllers: [GensetMonitoringController],
-  providers: [GensetMonitoringService, NotificationService, EmailService],
+  providers: [GensetMonitoringService, NotificationService, EmailService, IssueService],
 })
 export class GensetMonitoringModule {}

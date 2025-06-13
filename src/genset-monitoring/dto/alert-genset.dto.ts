@@ -6,9 +6,6 @@ export class AlertGensetStatusDto {
   gensetId: string;
 
   @IsNotEmpty()
-  station: string;
-
-  @IsNotEmpty()
   voltage: number;
 
   @IsNotEmpty()

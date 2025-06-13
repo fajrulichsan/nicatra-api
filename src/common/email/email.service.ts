@@ -166,11 +166,11 @@ export class EmailService implements OnModuleInit, OnModuleDestroy {
     power: number, 
     recipient: string
   ): Promise<void> {
-    const subject = `Status Terbaru Genset ${gensetId}`;
+    const subject = `Status Terbaru Genset ${station}`;
 
     const html = `
       <p>Pengguna Yang Terhormat,</p>
-      <p>Berikut adalah status terkini pada stasiun ${station} dengan genset ID ${gensetId}</p>
+      <p>Berikut adalah status terkini pada stasiun ${station}</p>
       <ul>
           <li><strong>Voltage:</strong> ${voltage} Volt</li>
           <li><strong>Arus:</strong> ${current} Ampere</li>

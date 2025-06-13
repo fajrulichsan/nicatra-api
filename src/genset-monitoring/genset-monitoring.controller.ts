@@ -13,7 +13,6 @@ export class GensetMonitoringController {
   ): Promise<{ message: string }> {
     await this.service.alertGensetStatus(
       dto.gensetId,
-      dto.station,
       dto.voltage,
       dto.current,
       dto.power

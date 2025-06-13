@@ -4,6 +4,7 @@ import { GensetMonitoringModule } from './genset-monitoring/genset-monitoring.mo
 import { UserModule } from './user/user.module';
 import { NotificationModule } from './notification/notification.module';
 import { StationModule } from './station/station.module';
+import { IssueModule } from './issue/issue.module';
 
 @Module({
   imports: [ 
@@ -11,10 +12,10 @@ import { StationModule } from './station/station.module';
     type: 'mysql',
     host: 'localhost',
     port: 3306,
-      // username: 'root',
-      // password: 'root',
-    username: 'nicatra',
-    password: 'Isan02082000!',
+      username: 'root',
+      password: 'root',
+    // username: 'nicatra',
+    // password: 'Isan02082000!',
     database: 'nicatra',
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
     synchronize: true,
@@ -22,7 +23,7 @@ import { StationModule } from './station/station.module';
   GensetMonitoringModule,
   UserModule,
   NotificationModule, 
-  StationModule],
+  StationModule, IssueModule],
   controllers: [],
   providers: [],
 })
