@@ -19,14 +19,27 @@ export class IssueService {
     return await this.issueRepository.save(issue);
   }
 
-  async updateStatusAndNotes(id: number, status: boolean, notes: string, updatedBy = 'SYSTEM'): Promise<Issue> {
+  async getAllIssues(): Promise<Issue[]> {
+    return this.issueRepository.find({
+      where: {
+        statusData: true, 
+      },
+      order: {
+        status: 'ASC', 
+        createdAt: 'DESC',
+      }
+    });
+  }
+  
+
+  async updateStatusAndNotes(id: number, notes: string, updatedBy = 'SYSTEM'): Promise<Issue> {
     const issue = await this.issueRepository.findOne({ where: { id } });
 
     if (!issue) {
       throw new NotFoundException(`Issue with ID ${id} not found`);
     }
 
-    issue.status = status;
+    issue.status = false;
     issue.notes = notes;
     issue.updatedBy = updatedBy;
 

@@ -1,10 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { IssueService } from './issue.service';
-import { CreateIssueDto } from './dto/create-issue.dto';
-import { UpdateIssueDto } from './dto/update-issue.dto';
 
-@Controller('issue')
+@Controller('issues')
 export class IssueController {
   constructor(private readonly issueService: IssueService) {}
 
+  @Get()
+  async getAllIssues(): Promise<any> {
+    const result = await this.issueService.getAllIssues();
+    return {
+      message: 'Issue records fetched successfully',
+      acknowledged: true,
+      data: result,
+    };
+  }
 }
